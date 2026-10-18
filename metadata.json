@@ -1,0 +1,6 @@
+{
+  "name": "Home - clases",
+  "description": "Portal web minimalista y fluido que funciona como lanzador de 3 aplicaciones: Cloud App, Cinera y AI Studio.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <rect x="3" y="6" width="42" height="34" rx="5" fill="#fbbc04"/>
+  <rect x="6" y="9" width="36" height="28" rx="3" fill="#137333"/>
+  <!-- Middle figure (Teacher) -->
+  <circle cx="24" cy="18" r="3.6" fill="#ffffff"/>
+  <path d="M18.5 29 C18.5 24.5 21 23 24 23 C27 23 29.5 24.5 29.5 29 Z" fill="#ffffff"/>
+  <!-- Left student -->
+  <circle cx="16" cy="20" r="2.6" fill="#ffffff" opacity="0.9"/>
+  <path d="M12 29 C12 25.5 14 24.2 16 24.2 C17.3 24.2 18.5 24.8 19.2 25.8 C18.7 26.7 18.5 27.8 18.5 29 Z" fill="#ffffff" opacity="0.9"/>
+  <!-- Right student -->
+  <circle cx="32" cy="20" r="2.6" fill="#ffffff" opacity="0.9"/>
+  <path d="M36 29 C36 25.5 34 24.2 32 24.2 C30.7 24.2 29.5 24.8 28.8 25.8 C29.3 26.7 29.5 27.8 29.5 29 Z" fill="#ffffff" opacity="0.9"/>
+</svg>
