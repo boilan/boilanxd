@@ -20,7 +20,7 @@ export const APPS: AppDefinition[] = [
     category: 'Cloud Services',
     tagline: 'Infraestructura y herramientas en la nube',
     description: 'Plataforma de servicios en la nube con acceso rápido a herramientas dinámicas, recursos distribuidos y gestión en tiempo real.',
-    url: 'https://d1oeei4dxabt4h.cloudfront.net/',
+    url: 'https://d1ouepq8701trm.cloudfront.net/learning/world-history/unit-2-MzZlZmY1NmViLm9Qak00VTVFSGt4Wg',
     isExternal: true,
     accentColor: 'from-cyan-500/20 via-sky-500/10 to-transparent',
     badge: 'Servicio 1',
