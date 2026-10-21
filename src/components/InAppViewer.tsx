@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, RotateCcw, ExternalLink, ShieldAlert, ArrowUpRight } from 'lucide-react';
+import { ArrowLeft, RotateCcw, ExternalLink, ShieldAlert, Shuffle } from 'lucide-react';
 import { AppDefinition } from '../types/app';
 import { openInAboutBlank } from '../utils/cloaker';
 
@@ -14,10 +14,27 @@ export const InAppViewer: React.FC<InAppViewerProps> = ({
   onBackToMenu,
   onOpenBlockedModal,
 }) => {
+  const [activeUrl, setActiveUrl] = useState(app.url);
+  const [urlIndex, setUrlIndex] = useState(() => {
+    if (app.urls && app.urls.length > 0) {
+      const idx = app.urls.indexOf(app.url);
+      return idx >= 0 ? idx : 0;
+    }
+    return 0;
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
   const [showIframeNotice, setShowIframeNotice] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Sync state if app changes
+  useEffect(() => {
+    setActiveUrl(app.url);
+    if (app.urls && app.urls.length > 0) {
+      const idx = app.urls.indexOf(app.url);
+      setUrlIndex(idx >= 0 ? idx : 0);
+    }
+  }, [app.url, app.urls]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -29,15 +46,30 @@ export const InAppViewer: React.FC<InAppViewerProps> = ({
     }, 4500);
 
     return () => clearTimeout(timer);
-  }, [app.url, reloadKey]);
+  }, [activeUrl, reloadKey]);
 
   const handleReload = () => {
     setIsLoading(true);
     setReloadKey((k) => k + 1);
   };
 
+  const handleRotateServer = () => {
+    if (!app.urls || app.urls.length <= 1) return;
+    const nextIdx = (urlIndex + 1) % app.urls.length;
+    setUrlIndex(nextIdx);
+    setActiveUrl(app.urls[nextIdx]);
+    setIsLoading(true);
+    setShowIframeNotice(false);
+    setReloadKey((k) => k + 1);
+    try {
+      localStorage.setItem(`app_rotating_idx_${app.id}`, nextIdx.toString());
+    } catch {
+      // ignore
+    }
+  };
+
   const handleLaunchAboutBlank = () => {
-    const res = openInAboutBlank(app.url, 'Home - clases', app.name);
+    const res = openInAboutBlank(activeUrl, 'Home - clases', app.name);
     if (res.blocked && onOpenBlockedModal) {
       onOpenBlockedModal();
     }
@@ -63,9 +95,33 @@ export const InAppViewer: React.FC<InAppViewerProps> = ({
             <span className="font-semibold text-white tracking-tight">{app.name}</span>
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
           </div>
+
+          {/* Quick server rotate pill if rotating URLs exist */}
+          {app.urls && app.urls.length > 1 && (
+            <button
+              onClick={handleRotateServer}
+              className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium text-cyan-300 hover:text-white bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/20 transition-all cursor-pointer"
+              title="Haz clic para rotar al siguiente servidor espejo"
+            >
+              <Shuffle className="w-3 h-3 text-cyan-400" />
+              <span>Servidor {urlIndex + 1}/{app.urls.length}</span>
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-1 sm:gap-2">
+          {/* Rotate server button if multiple urls exist */}
+          {app.urls && app.urls.length > 1 && (
+            <button
+              onClick={handleRotateServer}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-slate-400 hover:text-cyan-300 hover:bg-white/[0.06] transition-colors cursor-pointer"
+              title="Rotar al siguiente servidor"
+            >
+              <Shuffle className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="hidden sm:inline">Rotar servidor</span>
+            </button>
+          )}
+
           {/* Reload button */}
           <button
             onClick={handleReload}
@@ -95,20 +151,30 @@ export const InAppViewer: React.FC<InAppViewerProps> = ({
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#080a0f] text-slate-400">
             <div className="w-8 h-8 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin mb-3" />
             <span className="text-xs font-medium tracking-wide">Cargando {app.name}...</span>
-            <span className="text-[11px] text-slate-500 mt-1">Conexión en curso</span>
+            <span className="text-[11px] text-slate-500 mt-1 font-mono text-center px-4 truncate max-w-md">
+              {activeUrl}
+            </span>
           </div>
         )}
 
         {/* Security fallback notice (shown if iframe might be blocked or user needs alternative) */}
         {showIframeNotice && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 max-w-lg w-[92%] px-4 py-3 rounded-xl bg-[#0f141f]/95 border border-white/10 shadow-2xl backdrop-blur-md flex items-center justify-between gap-3 text-xs text-slate-300 animate-fade-in">
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 max-w-xl w-[92%] px-4 py-3 rounded-xl bg-[#0f141f]/95 border border-white/10 shadow-2xl backdrop-blur-md flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 text-xs text-slate-300 animate-fade-in">
             <div className="flex items-center gap-2.5">
               <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
               <span>
-                ¿El marco tarda en responder? Puedes alternar a la pestaña discreta.
+                ¿Tarda en responder? Puedes rotar de servidor o usar pestaña discreta.
               </span>
             </div>
             <div className="flex items-center gap-2 shrink-0">
+              {app.urls && app.urls.length > 1 && (
+                <button
+                  onClick={handleRotateServer}
+                  className="px-2.5 py-1 rounded bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 font-medium transition-colors cursor-pointer"
+                >
+                  Rotar servidor
+                </button>
+              )}
               <button
                 onClick={handleLaunchAboutBlank}
                 className="px-2.5 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-medium transition-colors cursor-pointer"
@@ -130,7 +196,7 @@ export const InAppViewer: React.FC<InAppViewerProps> = ({
         <iframe
           key={reloadKey}
           ref={iframeRef}
-          src={app.url}
+          src={activeUrl}
           title={app.name}
           className="w-full h-full border-0 block"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"

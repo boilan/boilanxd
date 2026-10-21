@@ -5,7 +5,7 @@ import { AppCard } from './components/AppCard';
 import { InAppViewer } from './components/InAppViewer';
 import { AboutBlankModal } from './components/AboutBlankModal';
 import { AIStudioApp } from './components/AIStudio/AIStudioApp';
-import { APPS, AppDefinition, LaunchMode } from './types/app';
+import { APPS, AppDefinition, LaunchMode, getNextRotatingUrl } from './types/app';
 import { openInAboutBlank } from './utils/cloaker';
 import { Shield, Sparkles, Layers, Terminal } from 'lucide-react';
 
@@ -29,17 +29,20 @@ export default function App() {
   }, []);
 
   const handleLaunch = (app: AppDefinition, mode: LaunchMode) => {
+    const activeUrl = app.urls && app.urls.length > 0 ? getNextRotatingUrl(app) : app.url;
+    const launchedApp = { ...app, url: activeUrl };
+
     if (mode === 'in-app') {
-      setCurrentApp(app);
+      setCurrentApp(launchedApp);
       setViewMode('in-app');
     } else if (mode === 'about-blank') {
-      const targetUrl = app.isExternal
-        ? app.url
+      const targetUrl = launchedApp.isExternal
+        ? launchedApp.url
         : `${window.location.origin}?app=ai-studio`;
 
-      const result = openInAboutBlank(targetUrl, 'Home - clases', app.name);
+      const result = openInAboutBlank(targetUrl, 'Home - clases', launchedApp.name);
       if (result.blocked) {
-        setBlockedModalApp(app);
+        setBlockedModalApp(launchedApp);
       }
     }
   };
